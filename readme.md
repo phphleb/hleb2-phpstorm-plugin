@@ -10,7 +10,7 @@ Supports **PhpStorm** versions >= _2023.2_
 
 ![install](https://raw.githubusercontent.com/phphleb/hleb2-phpstorm-plugin/e169b3b3ccd93a050299b5e125f9c24214de8c5e/src/main/resources/install.png)
 
-3) Add the plugin via `Install Plugin from Disk...`
+3) Add the plugin (file) via `Install Plugin from Disk...`
 
 4) Restart the IDE.
 
