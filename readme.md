@@ -1,6 +1,6 @@
-## HLEB2 Integration into phpStorm
+## HLEB2 Integration into PhpStorm
 
-A plugin for integrating the HLEB2 framework into the popular IDE phpStorm.
+A plugin for integrating the HLEB2 framework into the popular IDE PhpStorm.
 
 Supports phpStorm versions >= 2023.2
 
