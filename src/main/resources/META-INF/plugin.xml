@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<idea-plugin>
+    <id>phphleb</id>
+    <name>HLEB2</name>
+    <version>1.0.0</version>
+    <vendor email="fomiash@yandex.ru" url="https://hleb2framework.ru">
+        PHP-Framework HLEB2 plugin
+    </vendor>
+    <description>
+        <![CDATA[
+      Plugin for expanding the capabilities of the <a href="https://hleb2framework.ru">HLEB2</a> framework.<br><br>
+
+      <b>Route tips</b>.
+      The address prefix for the route and the address itself are provided with hints.<br><br>
+
+      <b>Showing information for configuration methods</b>.
+      Hints and verification have been added for methods and functions for obtaining configuration.<br>
+
+      <pre>
+  config('...', '...');
+  setting('...');
+  param('...');
+
+  use Hleb\Static\Settings;
+  Settings::getParam('...', '...');
+  </pre>
+
+      <b>Autocomplete for view() templates</b>.
+      Implemented substitution and file link (<b>Ctrl +</b>) for the following functions:<br>
+  <pre>
+  view('...');
+  template('...');
+  insertTemplate('...');
+  insertCacheTemplate('...');
+  </pre>
+
+      <b>Autocomplete for static methods that accept file paths</b>.
+      Implemented substitution and file link (<b>Ctrl +</b>) for the following methods:<br>
+  <pre>
+  use Hleb\Static\Path;
+  Path::get('@...');
+  Path::getReal('@...');
+  Path::exists('@...');
+  Path::contents('@...');
+  Path::put('@...', ...);
+  Path::isDir('@...');
+  </pre>
+
+   <b>Adds highlighting and annotation to request methods</b>.
+      Argument highlighting for the Request class:<br>
+  <pre>
+  use Hleb\Static\Request;
+  Request::param('...');
+  Request::post('...');
+  Request::get('...');
+  </pre>
+
+      <b>Autocomplete of special framework functions</b>.
+      Implemented substitution and file link (<b>Ctrl +</b>) for the following functions:<br>
+  <pre>
+  hl_path('@...');
+  hl_realpath('@...');
+  hl_file_exists('@...');
+  hl_file_get_contents('@...');
+  hl_file_put_contents('@...', ...);
+  hl_is_dir('@...');
+  </pre>
+
+      <b>Automatically inserting links to existing file path abbreviations</b>.
+      Implemented file link (<b>Ctrl +</b>) for the methods:<br>
+  <pre>
+  use Hleb\Static\Container;
+  use Hleb\Reference\PathInterface;
+  Container::get(PathInterface::class)->exists('@...');
+  </pre>
+  <hr>
+   Technical support <a href="https://t.me/phphleb">@phphleb</a> (Telegram)<br>
+   Project <a href="https://github.com/phphleb/hleb2-phpstorm-plugin/">repository</a> (GitHub)<br>
+   Plugin author Foma Tuturov<br>
+
+    ]]>
+    </description>
+    <change-notes>
+        <![CDATA[
+      <b>v1.0.0</b>
+      <ul>
+        <li>Autocomplete, hints and highlighting for configuration functions and methods.</li>
+        <li>Hints and highlighting for routing.</li>
+        <li>Autocompletion for framework functions and methods working with file paths.</li>
+      </ul>
+    ]]>
+    </change-notes>
+
+    <depends>com.jetbrains.php</depends>
+    <depends>com.intellij.modules.lang</depends>
+    <depends>org.jetbrains.plugins.phpstorm-remote-interpreter</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <psi.referenceContributor language="PHP" implementation="phphleb.HlebFilePathReferenceContributor"/>
+        <psi.referenceContributor language="PHP" implementation="phphleb.HlebStaticPathMethodReferenceContributor"/>
+        <psi.referenceContributor language="PHP" implementation="phphleb.HlebGlobalPathMethodReferenceContributor"/>
+        <psi.referenceContributor language="PHP" implementation="phphleb.HlebViewPathReferenceContributor"/>
+        <psi.referenceContributor language="PHP" implementation="phphleb.HlebViewPathMethodReferenceContributor"/>
+        <annotator language="PHP" implementationClass="phphleb.HlebConfigFunctionAnnotator" order="first"/>
+        <annotator language="PHP" implementationClass="phphleb.HlebRouteAddressAnnotator" order="first"/>
+        <annotator language="PHP" implementationClass="phphleb.HlebRoutePrefixAnnotator" order="first"/>
+        <annotator language="PHP" implementationClass="phphleb.HlebRequestParamMethodAnnotator" order="first"/>
+        <annotator language="PHP" implementationClass="phphleb.HlebRequestParamFunctionAnnotator" order="first"/>
+        <annotator language="PHP" implementationClass="phphleb.HlebRequestParamContainerAnnotator" order="first"/>
+        <annotator language="PHP" implementationClass="phphleb.HlebConfigContainerAnnotator" order="first"/>
+        <annotator language="PHP" implementationClass="phphleb.HlebDebugInformationAnnotator" order="first"/>
+    </extensions>
+</idea-plugin>
