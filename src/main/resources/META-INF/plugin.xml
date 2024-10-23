@@ -3,7 +3,7 @@
     <id>phphleb</id>
     <name>HLEB2</name>
     <version>1.0.0</version>
-    <vendor email="fomiash@yandex.ru" url="https://hleb2framework.ru">
+    <vendor email="fomiash@yandex.ru" url="https://github.com/phphleb/hleb2-phpstorm-plugin">
         fomiash
     </vendor>
     <description>

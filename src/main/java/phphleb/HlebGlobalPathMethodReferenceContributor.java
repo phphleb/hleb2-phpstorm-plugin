@@ -54,7 +54,8 @@ public class HlebGlobalPathMethodReferenceContributor extends PsiReferenceContri
                                     PsiElement grandParent = parent.getParent();
                                     if (grandParent instanceof MethodReference methodReference) {
                                         String methodName = methodReference.getName();
-                                        if (methodName != null) {
+                                        String text = element.getText().replace("\"", "").replace("'", "");
+                                        if (methodName != null && text.startsWith("@")) {
                                             boolean isDir = "isDir".equals(methodName);
                                             return new PsiReference[]{new PathReference((StringLiteralExpression) element, isDir, true, false)};
                                         }

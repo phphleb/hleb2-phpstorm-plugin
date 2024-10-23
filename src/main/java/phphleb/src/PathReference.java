@@ -38,7 +38,7 @@ public class PathReference extends PsiReferenceBase<PsiElement> implements PsiPo
         // Вызов конструктора базового класса PsiReferenceBase с элементом и флагом soft=true.
         super(element, true);
         // Извлечение содержимого строкового литерала (без кавычек).
-        path = element.getContents().replace("\\", "/");
+        this.path = element.getContents().replace("\\", "/").replace("\"", "").replace("'", "");
         // Устанавливает признак обработки путей только для директорий.
         this.onlyDir = onlyDir;
         // Устанавливает обработку только сокращенных путей.
@@ -158,37 +158,39 @@ public class PathReference extends PsiReferenceBase<PsiElement> implements PsiPo
     @NotNull
     @Override
     public Object @NotNull [] getVariants() {
+        if (!path.startsWith("@") && onlyBrief) {
+            return ResolveResult.EMPTY_ARRAY;
+        }
         List<String> variants = new ArrayList<>();
-        if (!onlyBrief) {
-            String[] pathsToCheck = {
-                    "@",
-                    "@global",
-                    "@views",
-                    "@app",
-                    "@resources",
-                    "@storage"
-            };
-            Project project = getElement().getProject();
+        String[] pathsToCheck = {
+                "@",
+                "@global",
+                "@views",
+                "@app",
+                "@resources",
+                "@storage"
+        };
+        Project project = getElement().getProject();
 
-            for (String basePath : pathsToCheck) {
-                // Все возможные пути.
-                String absoluteBasePath = resolveBasePath(basePath, project.getBasePath());
-                if (absoluteBasePath != null) {
-                    File baseDirectory = new File(absoluteBasePath);
-                    if (baseDirectory.exists() && baseDirectory.isDirectory()) {
-                        if (onlyDir) {
-                            // Только директории.
-                            addDirectories(baseDirectory, basePath, variants);
-                        } else if (fullPath) {
-                            // Все файлы и директории.
-                            addDirectories(baseDirectory, basePath, variants);
-                            addFiles(baseDirectory, basePath, variants);
-                        } else {
-                            // Только файлы.
-                            addFiles(baseDirectory, basePath, variants);
-                        }
+        for (String basePath : pathsToCheck) {
+            // Все возможные пути.
+            String absoluteBasePath = resolveBasePath(basePath, project.getBasePath());
 
+            if (absoluteBasePath != null) {
+                File baseDirectory = new File(absoluteBasePath);
+                if (baseDirectory.exists() && baseDirectory.isDirectory()) {
+                    if (onlyDir) {
+                        // Только директории.
+                        addDirectories(baseDirectory, basePath, variants);
+                    } else if (fullPath) {
+                        // Все файлы и директории.
+                        addDirectories(baseDirectory, basePath, variants);
+                        addFiles(baseDirectory, basePath, variants);
+                    } else {
+                        // Только файлы.
+                        addFiles(baseDirectory, basePath, variants);
                     }
+
                 }
             }
         }
