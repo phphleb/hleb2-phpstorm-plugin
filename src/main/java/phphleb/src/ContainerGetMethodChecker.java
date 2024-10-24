@@ -3,6 +3,7 @@ package phphleb.src;
 import com.intellij.psi.PsiElement;
 import com.jetbrains.php.lang.psi.elements.*;
 import com.jetbrains.php.lang.psi.elements.impl.ClassConstantReferenceImpl;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 
@@ -30,10 +31,15 @@ public class ContainerGetMethodChecker {
      * @return boolean
      */
     public static boolean checkInterface(PsiElement element, String className) {
-
-        PsiElement elementList = element.getParent();
+        @Nullable PsiElement elementList = PsiElementSource.getParent(element);
+        if (elementList == null) {
+            return false;
+        }
         if (elementList instanceof ParameterList) {
-            PsiElement parent = elementList.getParent();
+            @Nullable PsiElement parent = PsiElementSource.getParent(elementList);
+            if (parent == null) {
+                return false;
+            }
             if (parent instanceof MethodReference methodReference) {
                 PsiElement caller = methodReference.getFirstChild();
                 if (caller instanceof MethodReference parentMethod) {
@@ -42,7 +48,11 @@ public class ContainerGetMethodChecker {
                         if (getArguments.length == 1) {
                             PsiElement argument = getArguments[0];
                             if (argument instanceof ClassConstantReferenceImpl classReference) {
-                                if (containsValue(className, classReference.getText())) {
+                                String classText = PsiElementSource.getText(classReference);
+                                if (classText == null) {
+                                    return false;
+                                }
+                                if (containsValue(className, classText)) {
                                     PsiElement grandParent = parentMethod.getFirstChild();
                                     if (grandParent instanceof FieldReference fieldReference) {
                                         // Проверяется вызов $this->container->get(...)
@@ -51,7 +61,11 @@ public class ContainerGetMethodChecker {
                                                 "$this".equals(fieldReference.getFirstChild().getText());
                                     } else if (grandParent instanceof ClassReference containerClassReference) {
                                         // Проверяется вызов Container::get(...)
-                                        return "\\Hleb\\Static\\Container".equals(containerClassReference.getFQN());
+                                        @Nullable String qualifiedName = containerClassReference.getFQN();
+                                        if (qualifiedName == null) {
+                                            return false;
+                                        }
+                                        return "\\Hleb\\Static\\Container".equals(qualifiedName);
                                     }
                                 }
 
@@ -71,9 +85,15 @@ public class ContainerGetMethodChecker {
      * @param methodName - одноимённый метод для вызова сервиса из контейнера.
      */
     public static boolean checkShortcutMethod(PsiElement element, String methodName) {
-        PsiElement elementList = element.getParent();
+        @Nullable PsiElement elementList = PsiElementSource.getParent(element);
+        if (elementList == null) {
+            return false;
+        }
         if (elementList instanceof ParameterList) {
-            PsiElement parent = elementList.getParent();
+            @Nullable PsiElement parent = PsiElementSource.getParent(elementList);
+            if (parent == null) {
+                return false;
+            }
             if (parent instanceof MethodReference methodReference) {
                 PsiElement caller = methodReference.getFirstChild();
                 if (caller instanceof MethodReference parentMethod) {
@@ -94,9 +114,15 @@ public class ContainerGetMethodChecker {
      * @param methodName - одноимённый метод для вызова сервиса из контейнера.
      */
     public static boolean checkContainerShortcutMethod(PsiElement element, String methodName) {
-        PsiElement elementList = element.getParent();
+        @Nullable PsiElement elementList = PsiElementSource.getParent(element);
+        if (elementList == null) {
+            return false;
+        }
         if (elementList instanceof ParameterList) {
-            PsiElement parent = elementList.getParent();
+            @Nullable PsiElement parent = PsiElementSource.getParent(elementList);
+            if (parent == null) {
+                return false;
+            }
             if (parent instanceof MethodReference methodReference) {
                 PsiElement caller = methodReference.getFirstChild();
                 if (caller instanceof MethodReference parentMethod) {

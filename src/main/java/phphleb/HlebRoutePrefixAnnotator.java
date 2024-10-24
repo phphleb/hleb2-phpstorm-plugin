@@ -3,12 +3,11 @@ package phphleb;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.annotation.HighlightSeverity;
-import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
-import com.jetbrains.php.lang.PhpLanguage;
 import com.jetbrains.php.lang.psi.elements.ParameterList;
 import com.jetbrains.php.lang.psi.elements.impl.MethodReferenceImpl;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import phphleb.src.*;
 
 import java.util.logging.Logger;
@@ -18,34 +17,32 @@ import java.util.logging.Logger;
  */
 public class HlebRoutePrefixAnnotator implements Annotator {
 
-    private static final Logger logger = Logger.getLogger(HlebConfigContainerAnnotator.class.getName());
+    private static final Logger logger = Logger.getLogger(HlebRoutePrefixAnnotator.class.getName());
 
     @Override
     public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
         try {
-            if (!element.getLanguage().isKindOf(PhpLanguage.INSTANCE)) {
+            @Nullable PsiElement parent = PsiElementSource.getValidParentIfExists(element);
+            if (parent == null) {
                 return;
             }
-            if (!AttributeChecker.checkOption(element.getText())) {
+            if (!AttributeChecker.checkOption(PsiElementSource.getText(element))) {
                 return;
             }
-            Project project = element.getProject();
-            if (!FrameworkIdentifier.detect(project)) {
-                return;
-            }
-            PsiElement parent = element.getParent();
-
             if (parent instanceof ParameterList) {
-                PsiElement[] args = ((ParameterList) parent).getParameters();
+                PsiElement[] args = PsiElementSource.getArgs(parent);
                 if (args.length == 1) {
-                    PsiElement grandParent = parent.getParent();
+                    PsiElement grandParent = PsiElementSource.getParent(parent);
                     if (grandParent instanceof MethodReferenceImpl methodReference) {
                         String methodName = methodReference.getName();
                         if ("prefix".equals(methodName)) {
                             // Проверка всех предков для нахождения имени класса Route.
                             PsiElement qualifier = grandParent.getParent();
                             while (qualifier != null) {
-                                String chain = (String) qualifier.getText();
+                                String chain = PsiElementSource.getText(qualifier);
+                                if (chain == null) {
+                                    continue;
+                                }
                                 if (chain.startsWith("Route::")) {
                                     holder.newSilentAnnotation(HighlightSeverity.INFORMATION)
                                             .tooltip(RoutePopupContent.PREFIX_MESSAGE)

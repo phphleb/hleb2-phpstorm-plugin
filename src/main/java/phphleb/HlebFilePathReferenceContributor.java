@@ -1,19 +1,15 @@
 package phphleb;
 
-import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.intellij.util.ProcessingContext;
-import com.jetbrains.php.lang.PhpLanguage;
 import com.jetbrains.php.lang.psi.elements.MethodReference;
 import org.jetbrains.annotations.NotNull;
 import com.jetbrains.php.lang.psi.elements.FunctionReference;
 import com.jetbrains.php.lang.psi.elements.StringLiteralExpression;
 import com.jetbrains.php.lang.psi.elements.ParameterList;
 import com.intellij.patterns.PlatformPatterns;
-import phphleb.src.AttributeChecker;
-import phphleb.src.FrameworkIdentifier;
-import phphleb.src.LoggerWarning;
-import phphleb.src.PathReference;
+import org.jetbrains.annotations.Nullable;
+import phphleb.src.*;
 
 import java.util.logging.Logger;
 
@@ -22,7 +18,7 @@ import java.util.logging.Logger;
  */
 public class HlebFilePathReferenceContributor extends PsiReferenceContributor {
 
-    private static final Logger logger = Logger.getLogger(HlebConfigContainerAnnotator.class.getName());
+    private static final Logger logger = Logger.getLogger(HlebFilePathReferenceContributor.class.getName());
 
     @Override
     public void registerReferenceProviders(@NotNull PsiReferenceRegistrar registrar) {
@@ -37,18 +33,15 @@ public class HlebFilePathReferenceContributor extends PsiReferenceContributor {
                             @NotNull ProcessingContext context
                     ) {
                         try {
-                            if (!element.getLanguage().isKindOf(PhpLanguage.INSTANCE)) {
+                            @Nullable PsiElement parent = PsiElementSource.getValidParentIfExists(element);
+                            if (parent == null) {
                                 return PsiReference.EMPTY_ARRAY;
                             }
-                            Project project = element.getProject();
-                            if (!FrameworkIdentifier.detect(project)) {
-                                return PsiReference.EMPTY_ARRAY;
-                            }
-
-                            PsiElement parent = element.getParent();
-
                             if (parent instanceof ParameterList) {
                                 PsiElement grandParent = parent.getParent();
+                                if (grandParent == null) {
+                                    return PsiReference.EMPTY_ARRAY;
+                                }
                                 if (grandParent instanceof FunctionReference functionReference &&
                                         !(grandParent instanceof MethodReference)
                                 ) {
@@ -68,10 +61,10 @@ public class HlebFilePathReferenceContributor extends PsiReferenceContributor {
                                         boolean fullPath = "hl_path".equals(functionName) || "hl_realpath".equals(functionName) || "hl_file_exists".equals(functionName);
                                         boolean onlyBrief = "view".equals(functionName) || "template".equals(functionName) || "insertTemplate".equals(functionName) || "insertCacheTemplate".equals(functionName);
                                         // Список аргументов функции.
-                                        PsiElement[] args = ((ParameterList) parent).getParameters();
+                                        PsiElement[] args = PsiElementSource.getArgs(parent);
                                         // Элемент является первым аргументом.
                                         if (args.length > 0 && args[0].equals(element)) {
-                                            if (AttributeChecker.checkOption(element.getText())) {
+                                            if (AttributeChecker.checkOption(PsiElementSource.getText(element))) {
                                                 return new PsiReference[]{new PathReference((StringLiteralExpression) element, isDir, onlyBrief, fullPath)};
                                             }
                                         }

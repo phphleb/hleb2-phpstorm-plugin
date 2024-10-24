@@ -1,16 +1,12 @@
 package phphleb;
 
-import com.intellij.openapi.project.Project;
 import com.intellij.patterns.PlatformPatterns;
 import com.intellij.psi.*;
 import com.intellij.util.ProcessingContext;
-import com.jetbrains.php.lang.PhpLanguage;
 import com.jetbrains.php.lang.psi.elements.*;
 import org.jetbrains.annotations.NotNull;
-import phphleb.src.AttributeChecker;
-import phphleb.src.FrameworkIdentifier;
-import phphleb.src.LoggerWarning;
-import phphleb.src.ViewPathReference;
+import org.jetbrains.annotations.Nullable;
+import phphleb.src.*;
 
 import java.util.logging.Logger;
 
@@ -19,7 +15,7 @@ import java.util.logging.Logger;
  */
 public class HlebViewPathMethodReferenceContributor extends PsiReferenceContributor {
 
-    private static final Logger logger = Logger.getLogger(HlebConfigContainerAnnotator.class.getName());
+    private static final Logger logger = Logger.getLogger(HlebViewPathMethodReferenceContributor.class.getName());
 
     @Override
     public void registerReferenceProviders(@NotNull PsiReferenceRegistrar registrar) {
@@ -34,26 +30,26 @@ public class HlebViewPathMethodReferenceContributor extends PsiReferenceContribu
                             @NotNull ProcessingContext context
                     ) {
                         try {
-                            if (!element.getLanguage().isKindOf(PhpLanguage.INSTANCE)) {
+                            @Nullable PsiElement parent = PsiElementSource.getValidParentIfExists(element);
+                            if (parent == null) {
                                 return PsiReference.EMPTY_ARRAY;
                             }
-                            if (!AttributeChecker.checkOption(element.getText())) {
+                            if (!AttributeChecker.checkOption(PsiElementSource.getText(element))) {
                                 return PsiReference.EMPTY_ARRAY;
                             }
-                            Project project = element.getProject();
-                            if (!FrameworkIdentifier.detect(project)) {
-                                return PsiReference.EMPTY_ARRAY;
-                            }
-
-                            PsiElement parent = element.getParent();
-
                             if (parent instanceof ParameterList) {
                                 PsiElement grandParent = parent.getParent();
+                                if (grandParent == null) {
+                                    return PsiReference.EMPTY_ARRAY;
+                                }
                                 if (grandParent instanceof MethodReference methodReference) {
                                     String methodName = methodReference.getName();
                                     PsiElement qualifier = methodReference.getClassReference();
                                     if (qualifier instanceof ClassReference) {
-                                        String qualifiedName = ((ClassReference) qualifier).getFQN();
+                                        @Nullable String qualifiedName = ((ClassReference) qualifier).getFQN();
+                                        if (qualifiedName == null) {
+                                            return PsiReference.EMPTY_ARRAY;
+                                        }
                                         boolean isView = "\\Hleb\\Static\\View".equals(qualifiedName);
                                         boolean isTemplate = "\\Hleb\\Static\\Template".equals(qualifiedName);
                                         if (("view".equals(methodName) && isView) ||
@@ -62,7 +58,7 @@ public class HlebViewPathMethodReferenceContributor extends PsiReferenceContribu
                                                 ("insertCache".equals(methodName) && isTemplate)
                                         ) {
                                             // Список аргументов функции.
-                                            PsiElement[] args = ((ParameterList) parent).getParameters();
+                                            PsiElement[] args = PsiElementSource.getArgs(parent);
                                             // Элемент является первым аргументом.
                                             if (args.length > 0 && args[0].equals(element)) {
                                                 return new PsiReference[]{new ViewPathReference((StringLiteralExpression) element)};

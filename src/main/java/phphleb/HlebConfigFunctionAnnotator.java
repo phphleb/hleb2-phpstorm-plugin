@@ -2,18 +2,13 @@ package phphleb;
 
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
-import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
-import com.jetbrains.php.lang.PhpLanguage;
 import com.jetbrains.php.lang.psi.elements.FunctionReference;
 import com.jetbrains.php.lang.psi.elements.MethodReference;
 import com.jetbrains.php.lang.psi.elements.ParameterList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import phphleb.src.AttributeChecker;
-import phphleb.src.ConfigAnnotationService;
-import phphleb.src.FrameworkIdentifier;
-import phphleb.src.LoggerWarning;
+import phphleb.src.*;
 
 import java.util.logging.Logger;
 
@@ -22,22 +17,20 @@ import java.util.logging.Logger;
  */
 public class HlebConfigFunctionAnnotator implements Annotator {
 
-    private static final Logger logger = Logger.getLogger(HlebConfigContainerAnnotator.class.getName());
+    private static final Logger logger = Logger.getLogger(HlebConfigFunctionAnnotator.class.getName());
 
     @Override
     public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
         try {
-            if (!element.getLanguage().isKindOf(PhpLanguage.INSTANCE)) {
+            @Nullable PsiElement parent = PsiElementSource.getValidParentIfExists(element);
+            if (parent == null) {
                 return;
             }
-            Project project = element.getProject();
-            if (!FrameworkIdentifier.detect(project)) {
-                return;
-            }
-            PsiElement parent = element.getParent();
-
             if (parent instanceof ParameterList) {
                 PsiElement grandParent = parent.getParent();
+                if (grandParent == null) {
+                    return;
+                }
                 if (grandParent instanceof FunctionReference functionReference &&
                         !(grandParent instanceof MethodReference)
                 ) {
@@ -49,18 +42,18 @@ public class HlebConfigFunctionAnnotator implements Annotator {
                             "get_config_or_fail".equals(functionName)
                     ) {
                         // Список аргументов функции.
-                        PsiElement[] args = ((ParameterList) parent).getParameters();
+                        PsiElement[] args = PsiElementSource.getArgs(parent);
                         if (args.length > 0) {
                             String configName = getConfigType(args, functionName);
                             String configValue = getConfigValue(args, functionName);
 
                             if (configName != null) {
                                 if (isConfigTag(element, args, functionName)) {
-                                    if (AttributeChecker.checkOption(element.getText())) {
+                                    if (AttributeChecker.checkOption(PsiElementSource.getText(element))) {
                                         ConfigAnnotationService.addNoticeFromConfigType(holder, configName, configValue, element);
                                     }
                                 } else {
-                                    if (AttributeChecker.checkValue(element.getText())) {
+                                    if (AttributeChecker.checkValue(PsiElementSource.getText(element))) {
                                         ConfigAnnotationService.addNoticeFromConfigValue(holder, configName, configValue, element);
                                     }
                                 }
@@ -91,11 +84,19 @@ public class HlebConfigFunctionAnnotator implements Annotator {
     private static String getConfigValue(PsiElement[] args, String functionName) {
         if (("config".equals(functionName) || "hl_config".equals(functionName) || "get_config_or_fail".equals(functionName))) {
             if (args.length > 1) {
-                return (String) args[1].getText().replaceAll("[\"']", "");
+                String paramName = PsiElementSource.getText(args[1]);
+                if (paramName == null) {
+                    return null;
+                }
+                return paramName.replaceAll("[\"']", "");
             }
             return null;
         }
-        return (String) args[0].getText().replaceAll("[\"']", "");
+        String paramName = PsiElementSource.getText(args[0]);
+        if (paramName == null) {
+            return null;
+        }
+        return paramName.replaceAll("[\"']", "");
     }
 
 
@@ -111,7 +112,10 @@ public class HlebConfigFunctionAnnotator implements Annotator {
             return "database";
         }
         if ("config".equals(functionName) || "hl_config".equals(functionName) || "get_config_or_fail".equals(functionName)) {
-            return (String) args[0].getText().replaceAll("[\"']", "");
+            String paramName = PsiElementSource.getText(args[0]);
+            if (paramName != null) {
+                return paramName.replaceAll("[\"']", "");
+            }
         }
         return null;
     }
