@@ -1,8 +1,6 @@
 ## HLEB2 Integration into PhpStorm
 
-A plugin for integrating the [HLEB2](https://github.com/phphleb/hleb/) framework into the popular IDE PhpStorm.
-
-Official plugin page: https://plugins.jetbrains.com/plugin/25645-hleb2
+A plugin for integrating the [HLEB2](https://github.com/phphleb/hleb/) framework into the IDE PhpStorm.
 
 Supports **PhpStorm** versions >= _2023.2_
 
