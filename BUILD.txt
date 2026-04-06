@@ -1,0 +1,42 @@
+## Building the HLEB2 PhpStorm Plugin
+
+### Requirements
+
+- JDK 21 (JAVA_HOME must point to it)
+- PhpStorm version 2023.2 or newer installed locally
+
+### Step 1. Clone the repository
+
+    git clone https://github.com/phphleb/hleb2-phpstorm-plugin.git
+    cd hleb2-phpstorm-plugin
+
+### Step 2. Set the path to your local PhpStorm installation
+
+Open build.gradle.kts and update the following line inside the intellij { } block:
+
+    localPath.set("/opt/PhpStorm")
+
+Replace /opt/PhpStorm with the actual path to your PhpStorm installation directory.
+Common paths:
+  Linux:   /opt/PhpStorm  or  ~/PhpStorm-<version>
+  macOS:   /Applications/PhpStorm.app/Contents
+  Windows: C:\Program Files\JetBrains\PhpStorm <version>
+
+### Step 3 (optional). Set the path to JDK 21
+
+If JDK 21 is installed in a non-standard location, add the following line to gradle.properties:
+
+    org.gradle.java.installations.paths=/path/to/jdk-21
+
+### Step 4. Build the plugin
+
+    ./gradlew buildPlugin
+
+Output: build/distributions/hleb2-integration-<version>.zip
+
+### Installing the built plugin in PhpStorm
+
+1. Open File > Settings > Plugins
+2. Click the gear icon and select "Install Plugin from Disk..."
+3. Point to the ZIP file from build/distributions/
+4. Restart the IDE.

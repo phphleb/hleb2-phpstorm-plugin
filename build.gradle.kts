@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "phphleb"
-version = "1.0.0"
+version = "1.2.0"
 
 repositories {
     mavenCentral()
@@ -17,20 +17,21 @@ tasks.test {
 // Конфигурация плагина IntelliJ
 intellij {
     pluginName.set("hleb2-integration")
-    version.set("2023.2") // Минимальная версия IDE
-    type.set("PS")
+    localPath.set("/opt/PhpStorm") // использует локальную установку, без скачивания IDE
     plugins.set(listOf(
-            // https://plugins.jetbrains.com/plugin/6610-php/versions
-            "com.jetbrains.php:232.8660.205",
-            // https://plugins.jetbrains.com/plugin/7511-php-remote-interpreter/versions
-            "org.jetbrains.plugins.phpstorm-remote-interpreter:232.8660.142",
+            "com.jetbrains.php",
+            "org.jetbrains.plugins.phpstorm-remote-interpreter",
     ))
 }
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
+        languageVersion.set(JavaLanguageVersion.of(21))
     }
+}
+
+tasks.withType<JavaCompile> {
+    options.release.set(17)
 }
 
 tasks {
@@ -39,6 +40,5 @@ tasks {
     }
     patchPluginXml {
         sinceBuild.set("232")
-        untilBuild.set("252.*")
     }
 }
