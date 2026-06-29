@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "phphleb"
-version = "1.2.0"
+version = "1.2.1"
 
 repositories {
     mavenCentral()
@@ -18,10 +18,7 @@ tasks.test {
 intellij {
     pluginName.set("hleb2-integration")
     localPath.set("/opt/PhpStorm") // использует локальную установку, без скачивания IDE
-    plugins.set(listOf(
-            "com.jetbrains.php",
-            "org.jetbrains.plugins.phpstorm-remote-interpreter",
-    ))
+    plugins.set(listOf("com.jetbrains.php"))
 }
 
 java {
@@ -40,5 +37,6 @@ tasks {
     }
     patchPluginXml {
         sinceBuild.set("232")
+        untilBuild.set(provider { null })
     }
 }
